@@ -37,4 +37,4 @@ gcc 2201020130.c -o data.exe
 ```bash
 data data1.csv
 
-
+---
