@@ -29,12 +29,12 @@ typedef struct Data {
 
 ---
 
-## Cara Menjalankan Program
+## 🚀 Langkah-Langkah Compile
 
-```c
-gcc 2201020130.c -o buku.exe
----
+Menggunakan GCC:
+```bash
+gcc 2201020130.c -o data.exe
+```bash
+data data1.csv
 
-```c
-buku data1.csv
----
+
