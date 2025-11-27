@@ -31,10 +31,10 @@ typedef struct Data {
 
 ## Cara Menjalankan Program
 
-```
+```c
 gcc 2201020130.c -o buku.exe
 ---
 
-```
+```c
 buku data1.csv
 ---
