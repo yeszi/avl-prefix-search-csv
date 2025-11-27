@@ -6,7 +6,7 @@
 typedef struct Data {
     char nik[20];
     char nama[50];
-    char alamat[100];
+    char jk[10]; 
 } Data;
 
 typedef struct Node {
@@ -15,8 +15,6 @@ typedef struct Node {
     struct Node *left, *right;
 } Node;
 
-
-// ===================== AVL TREE UTILITY ======================
 
 int height(Node *n) {
     return n ? n->height : 0;
@@ -66,21 +64,22 @@ Node* leftRotate(Node *x) {
 }
 
 
-// ===================== COMPARE KEY ======================
-// AVL berdasarkan NIK → string compare
-// AVL berdasarkan NAMA → lowercase compare
-
-char lower(char c) {
-    return tolower(c);
+void toLowerStr(char *dest, const char *src) {
+    int i = 0;
+    while (src[i]) {
+        dest[i] = tolower(src[i]);
+        i++;
+    }
+    dest[i] = '\0';
 }
 
-void toLowerStr(char *str) {
-    for (int i = 0; str[i]; i++)
-        str[i] = tolower(str[i]);
+int compareNama(char *nama1, char *nama2) {
+    char temp1[50], temp2[50];
+    toLowerStr(temp1, nama1);
+    toLowerStr(temp2, nama2);
+    return strcmp(temp1, temp2);
 }
 
-
-// ===================== INSERT NODE ======================
 
 Node* insertByNIK(Node* node, Data d) {
     if (!node) return newNode(d);
@@ -121,13 +120,7 @@ Node* insertByNIK(Node* node, Data d) {
 Node* insertByNama(Node* node, Data d) {
     if (!node) return newNode(d);
 
-    char nama1[50], nama2[50];
-    strcpy(nama1, d.nama);
-    strcpy(nama2, node->data.nama);
-    toLowerStr(nama1);
-    toLowerStr(nama2);
-
-    int cmp = strcmp(nama1, nama2);
+    int cmp = compareNama(d.nama, node->data.nama);
 
     if (cmp < 0)
         node->left = insertByNama(node->left, d);
@@ -139,18 +132,19 @@ Node* insertByNama(Node* node, Data d) {
     node->height = 1 + max(height(node->left), height(node->right));
     int balance = getBalance(node);
 
-    if (balance > 1 && cmp < 0)
+    
+    if (balance > 1 && compareNama(d.nama, node->left->data.nama) < 0)
         return rightRotate(node);
 
-    if (balance < -1 && cmp > 0)
+    if (balance < -1 && compareNama(d.nama, node->right->data.nama) > 0)
         return leftRotate(node);
 
-    if (balance > 1 && cmp > 0) {
+    if (balance > 1 && compareNama(d.nama, node->left->data.nama) > 0) {
         node->left = leftRotate(node->left);
         return rightRotate(node);
     }
 
-    if (balance < -1 && cmp < 0) {
+    if (balance < -1 && compareNama(d.nama, node->right->data.nama) < 0) {
         node->right = rightRotate(node->right);
         return leftRotate(node);
     }
@@ -159,16 +153,15 @@ Node* insertByNama(Node* node, Data d) {
 }
 
 
-// ===================== PREFIX SEARCH ======================
 
 void prefixSearchNIK(Node *root, char *prefix) {
     if (!root) return;
-
+    
     prefixSearchNIK(root->left, prefix);
 
     if (strncmp(root->data.nik, prefix, strlen(prefix)) == 0)
-        printf("NIK: %s | Nama: %s | Alamat: %s\n",
-            root->data.nik, root->data.nama, root->data.alamat);
+        printf("NIK: %-10s | Nama: %-20s | JK: %s\n",
+            root->data.nik, root->data.nama, root->data.jk);
 
     prefixSearchNIK(root->right, prefix);
 }
@@ -179,43 +172,51 @@ void prefixSearchNama(Node *root, char *prefix) {
     prefixSearchNama(root->left, prefix);
 
     char lowerNama[50];
-    strcpy(lowerNama, root->data.nama);
-    toLowerStr(lowerNama);
+    toLowerStr(lowerNama, root->data.nama);
 
     if (strncmp(lowerNama, prefix, strlen(prefix)) == 0)
-        printf("NIK: %s | Nama: %s | Alamat: %s\n",
-            root->data.nik, root->data.nama, root->data.alamat);
+        printf("NIK: %-10s | Nama: %-20s | JK: %s\n",
+            root->data.nik, root->data.nama, root->data.jk);
 
     prefixSearchNama(root->right, prefix);
 }
 
 
-// ===================== CSV LOADING ======================
 
 void loadCSV(Node **treeNIK, Node **treeNama, char *filename) {
     FILE *fp = fopen(filename, "r");
     if (!fp) {
-        printf("CSV tidak ditemukan!\n");
+        printf("File %s tidak ditemukan!\n", filename);
         return;
     }
 
     char line[256];
+    int count = 0;
     while (fgets(line, sizeof(line), fp)) {
         Data d;
-        char *token = strtok(line, ",");
+        char *token = strtok(line, ";");
         if (!token) continue;
         strcpy(d.nik, token);
 
-        token = strtok(NULL, ",");
+        token = strtok(NULL, ";");
+        if (!token) continue;
         strcpy(d.nama, token);
 
-        token = strtok(NULL, ",");
-        strcpy(d.alamat, token);
+        token = strtok(NULL, ";");
+        if (!token) {
+            strcpy(d.jk, "-"); 
+        } else {
+
+            token[strcspn(token, "\r\n")] = 0;
+            strcpy(d.jk, token);
+        }
 
         *treeNIK = insertByNIK(*treeNIK, d);
         *treeNama = insertByNama(*treeNama, d);
+        count++;
     }
 
+    printf("Berhasil memuat %d data dari %s\n", count, filename);
     fclose(fp);
 }
 
@@ -225,7 +226,6 @@ void loadCSV(Node **treeNIK, Node **treeNama, char *filename) {
 void menu(Node **treeNIK, Node **treeNama) {
     while (1) {
         char pilih;
-
         printf("\nWelcome\n");
         printf("==============\n");
         printf("Input Data (I)\n");
@@ -235,24 +235,33 @@ void menu(Node **treeNIK, Node **treeNama) {
         printf("Berhenti Program (B)\n");
         printf("Pilihan Anda: ");
 
-        scanf(" %c", &pilih);
+        if (scanf(" %c", &pilih) != 1) break;
         pilih = toupper(pilih);
 
         if (pilih == 'C') {
             char key[50], val[50];
-            printf("Masukan keyword (NIK/NAMA) spasi nilai: ");
+            printf("Masukan keyword (NIK atau NAMA) spasi nilai_yang_dicari: ");
+            // Contoh input: NIK 9011 atau NAMA grayesi
             scanf("%s %s", key, val);
 
-            toLowerStr(key);
-            toLowerStr(val);
+            // Ubah keyword dan value ke lowercase untuk pencarian
+            char lowerKey[50], lowerVal[50];
+            toLowerStr(lowerKey, key);
+            toLowerStr(lowerVal, val);
 
-            if (strcmp(key, "nik") == 0) {
+            if (strcmp(lowerKey, "nik") == 0) {
                 printf("\nHasil pencarian NIK prefix '%s':\n", val);
-                prefixSearchNIK(*treeNIK, val);
+                printf("--------------------------------------------------\n");
+                prefixSearchNIK(*treeNIK, lowerVal); // Cari NIK persis seperti input angka
+                printf("--------------------------------------------------\n");
 
-            } else if (strcmp(key, "nama") == 0) {
-                printf("\nHasil pencarian nama prefix '%s':\n", val);
-                prefixSearchNama(*treeNama, val);
+            } else if (strcmp(lowerKey, "nama") == 0) {
+                printf("\nHasil pencarian NAMA prefix '%s':\n", val);
+                printf("--------------------------------------------------\n");
+                prefixSearchNama(*treeNama, lowerVal);
+                printf("--------------------------------------------------\n");
+            } else {
+                printf("Keyword salah! Gunakan 'NIK' atau 'NAMA'.\n");
             }
         }
 
@@ -262,19 +271,18 @@ void menu(Node **treeNIK, Node **treeNama) {
         }
 
         else {
-            printf("Fitur ini bisa kamu lengkapi sendiri (Input/Edit/Hapus).\n");
+            printf("Fitur Input/Edit/Hapus belum diimplementasikan di kode ini.\n");
         }
     }
 }
 
 
-// ===================== MAIN ======================
 
 int main() {
     Node *treeNIK = NULL;
     Node *treeNama = NULL;
 
-    loadCSV(&treeNIK, &treeNama, "data.csv");
+    loadCSV(&treeNIK, &treeNama, "data1.csv");
 
     menu(&treeNIK, &treeNama);
 
