@@ -17,6 +17,16 @@ Tujuan dari praktikum ini adalah memahami bagaimana data dapat dicari dengan cep
 
 ---
 
+## 🚀 Langkah-Langkah Compile
+
+Menggunakan GCC:
+```bash
+gcc 2201020130.c -o data.exe
+```bash
+data data1.csv
+
+---
+
 ## 🗂 Struktur Data
 Program ini menggunakan struktur `Data` yang terdiri dari:
 
@@ -29,12 +39,3 @@ typedef struct Data {
 
 ---
 
-## 🚀 Langkah-Langkah Compile
-
-Menggunakan GCC:
-```bash
-gcc 2201020130.c -o data.exe
-```bash
-data data1.csv
-
----
