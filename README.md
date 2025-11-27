@@ -24,5 +24,11 @@ Program ini menggunakan struktur `Data` yang terdiri dari:
 typedef struct Data {
     char nik[20];
     char nama[50];
-    char jenis kelamin [20];
+    char jK [20];
 } Data;
+
+---
+
+## Cara Menjalankan program
+
+---
